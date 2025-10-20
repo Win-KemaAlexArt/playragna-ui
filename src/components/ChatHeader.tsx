@@ -1,4 +1,5 @@
 import { RouterSignalLight } from "./RouterSignalLight";
+import { AnimatedLogo } from "./AnimatedLogo";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Plus, Settings, HelpCircle } from "lucide-react";
 import {
@@ -19,6 +20,7 @@ export const ChatHeader = ({ onNewChat, onSettings, onHelp }: ChatHeaderProps) =
   return (
     <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between px-4">
       <div className="flex items-center gap-3">
+        <AnimatedLogo size={40} />
         <h1 className="text-xl font-rajdhani font-bold metal-glow">
           PlayRAGNA
         </h1>
