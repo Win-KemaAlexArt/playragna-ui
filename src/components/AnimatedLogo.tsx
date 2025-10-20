@@ -59,9 +59,9 @@ export const AnimatedLogo = ({ className = "", size = 48 }: { className?: string
         />
       </circle>
 
-      {/* Middle hexagon */}
+      {/* Middle hexagon - bigger and centered */}
       <path
-        d="M 50 10 L 75 25 L 75 55 L 50 70 L 25 55 L 25 25 Z"
+        d="M 50 5 L 82 27.5 L 82 72.5 L 50 95 L 18 72.5 L 18 27.5 Z"
         stroke="url(#logo-gradient)"
         strokeWidth="2.5"
         fill="none"
@@ -75,60 +75,52 @@ export const AnimatedLogo = ({ className = "", size = 48 }: { className?: string
         />
       </path>
 
-      {/* Inner pulsing elements */}
+      {/* Center pulsing "PR" letters */}
       <g filter="url(#strong-glow)">
-        {/* Center core */}
-        <circle
-          cx="50"
-          cy="50"
-          r="8"
-          fill="url(#logo-gradient)"
-        >
-          <animate
-            attributeName="r"
-            values="8;12;8"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-          <animate
-            attributeName="opacity"
-            values="1;0.6;1"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-        </circle>
-
-        {/* Letter P stylized */}
+        {/* Letter P */}
         <path
-          d="M 42 35 L 42 50 M 42 35 L 48 35 Q 52 35 52 39 Q 52 43 48 43 L 42 43"
+          d="M 38 40 L 38 60 M 38 40 L 46 40 Q 51 40 51 45 Q 51 50 46 50 L 38 50"
           stroke="hsl(190, 100%, 50%)"
-          strokeWidth="2.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
         >
           <animate
             attributeName="opacity"
-            values="0.6;1;0.6"
-            dur="3s"
+            values="0.7;1;0.7"
+            dur="2s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-width"
+            values="3;4;3"
+            dur="2s"
             repeatCount="indefinite"
           />
         </path>
 
-        {/* Letter R stylized */}
+        {/* Letter R */}
         <path
-          d="M 55 35 L 55 50 M 55 35 L 60 35 Q 63 35 63 39 Q 63 42 60 42 L 55 42 M 58 42 L 63 50"
+          d="M 54 40 L 54 60 M 54 40 L 62 40 Q 66 40 66 45 Q 66 49 62 49 L 54 49 M 59 49 L 66 60"
           stroke="hsl(195, 100%, 45%)"
-          strokeWidth="2.5"
+          strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
         >
           <animate
             attributeName="opacity"
-            values="0.6;1;0.6"
-            dur="3s"
-            begin="0.5s"
+            values="0.7;1;0.7"
+            dur="2s"
+            begin="0.3s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="stroke-width"
+            values="3;4;3"
+            dur="2s"
+            begin="0.3s"
             repeatCount="indefinite"
           />
         </path>
