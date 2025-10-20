@@ -3,7 +3,10 @@ import { ChatHeader } from "@/components/ChatHeader";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
+import { MCPToolsPanel } from "@/components/MCPToolsPanel";
 import { toast } from "sonner";
+
+type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history";
 
 interface Message {
   id: string;
@@ -13,6 +16,7 @@ interface Message {
 }
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<TabId>("chats");
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -66,36 +70,55 @@ const Index = () => {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <ChatSidebar />
+        <ChatSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         
         <main className="flex-1 flex flex-col">
-          {/* Chat Messages Area */}
-          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-            {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <h2 className="text-2xl font-rajdhani font-bold metal-glow">
-                    PlayRAGNA Extension v2.0
-                  </h2>
-                  <p className="text-muted-foreground">
-                    Battle.net inspired AI interface
-                  </p>
-                </div>
+          {activeTab === "chats" ? (
+            <>
+              {/* Chat Messages Area */}
+              <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+                {messages.length === 0 ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center space-y-4">
+                      <h2 className="text-2xl font-rajdhani font-bold metal-glow">
+                        PlayRAGNA Extension v2.0
+                      </h2>
+                      <p className="text-muted-foreground">
+                        Battle.net inspired AI interface
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  messages.map((message) => (
+                    <ChatMessage
+                      key={message.id}
+                      role={message.role}
+                      content={message.content}
+                      timestamp={message.timestamp}
+                    />
+                  ))
+                )}
               </div>
-            ) : (
-              messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  role={message.role}
-                  content={message.content}
-                  timestamp={message.timestamp}
-                />
-              ))
-            )}
-          </div>
 
-          {/* Chat Input */}
-          <ChatInput onSendMessage={handleSendMessage} />
+              {/* Chat Input */}
+              <ChatInput onSendMessage={handleSendMessage} />
+            </>
+          ) : activeTab === "tools" ? (
+            <MCPToolsPanel />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <h2 className="text-2xl font-rajdhani font-bold metal-glow">
+                  {activeTab === "documents" && "Документы"}
+                  {activeTab === "bookmarks" && "Закладки"}
+                  {activeTab === "history" && "История"}
+                </h2>
+                <p className="text-muted-foreground">
+                  Эта функция будет доступна в следующей версии
+                </p>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
