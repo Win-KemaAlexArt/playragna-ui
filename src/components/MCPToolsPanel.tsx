@@ -93,8 +93,8 @@ export const MCPToolsPanel = () => {
         </h2>
       </div>
 
-      {/* Tools Grid - Responsive: 1 col on mobile, 2 cols on tablet+ */}
-      <div className="grid grid-cols-1 min-[500px]:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+      {/* Tools Grid - 1 column mobile, 2 columns from 768px+ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {tools.map((tool) => (
           <MCPToolCard
             key={tool.id}
@@ -107,11 +107,11 @@ export const MCPToolsPanel = () => {
         ))}
       </div>
 
-      {/* Action Buttons - Stack on very narrow screens */}
-      <div className="flex flex-col min-[400px]:flex-row gap-2 sm:gap-3">
+      {/* Action Buttons - Always horizontal */}
+      <div className="flex gap-3">
         <Button
           onClick={handleAddTool}
-          className="flex-1 bg-primary/20 border border-primary/50 text-primary hover:bg-primary/40 hover:text-foreground font-rajdhani font-semibold text-sm"
+          className="flex-1 bg-primary/20 border border-primary/50 text-primary hover:bg-primary/40 hover:text-foreground font-rajdhani font-semibold"
           variant="outline"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -119,7 +119,7 @@ export const MCPToolsPanel = () => {
         </Button>
         <Button
           onClick={handleMCPStore}
-          className="flex-1 bg-card/70 border border-muted-foreground hover:bg-card/90 hover:text-foreground font-rajdhani font-semibold text-sm"
+          className="flex-1 bg-card/70 border border-muted-foreground hover:bg-card/90 hover:text-foreground font-rajdhani font-semibold"
           variant="outline"
         >
           <Store className="w-4 h-4 mr-2" />
