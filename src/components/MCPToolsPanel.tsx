@@ -93,8 +93,8 @@ export const MCPToolsPanel = () => {
         </h2>
       </div>
 
-      {/* Tools Grid - 1 column mobile, 2 columns from 768px+ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+      {/* Adaptive Grid: 1 col mobile, 2 cols tablet, 3 cols desktop, 4 cols wide */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
         {tools.map((tool) => (
           <MCPToolCard
             key={tool.id}
