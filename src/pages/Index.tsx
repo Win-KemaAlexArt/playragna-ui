@@ -4,6 +4,9 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { MCPToolsPanel } from "@/components/MCPToolsPanel";
+import { DocumentsPanel } from "@/components/DocumentsPanel";
+import { BookmarksPanel } from "@/components/BookmarksPanel";
+import { HistoryPanel } from "@/components/HistoryPanel";
 import { toast } from "sonner";
 
 type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history";
@@ -105,20 +108,13 @@ const Index = () => {
             </>
           ) : activeTab === "tools" ? (
             <MCPToolsPanel />
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center space-y-4">
-                <h2 className="text-2xl font-rajdhani font-bold metal-glow">
-                  {activeTab === "documents" && "Документы"}
-                  {activeTab === "bookmarks" && "Закладки"}
-                  {activeTab === "history" && "История"}
-                </h2>
-                <p className="text-muted-foreground">
-                  Эта функция будет доступна в следующей версии
-                </p>
-              </div>
-            </div>
-          )}
+          ) : activeTab === "documents" ? (
+            <DocumentsPanel />
+          ) : activeTab === "bookmarks" ? (
+            <BookmarksPanel />
+          ) : activeTab === "history" ? (
+            <HistoryPanel />
+          ) : null}
         </main>
       </div>
     </div>
