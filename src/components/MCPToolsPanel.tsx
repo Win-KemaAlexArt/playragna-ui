@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MCPToolCard } from "./MCPToolCard";
 import { MCPConfigModal } from "./MCPConfigModal";
+import { MCPStoreModal } from "./MCPStoreModal";
 import { Button } from "@/components/ui/button";
 import { Search, Globe, Database, Plug, Image, FileText, Plus, Store } from "lucide-react";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ export const MCPToolsPanel = () => {
   const [tools] = useState<MCPTool[]>(defaultTools);
   const [selectedTool, setSelectedTool] = useState<MCPTool | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(false);
 
   const handleConfigure = (tool: MCPTool) => {
     setSelectedTool(tool);
@@ -75,9 +77,7 @@ export const MCPToolsPanel = () => {
   };
 
   const handleMCPStore = () => {
-    toast.info("MCP Store", {
-      description: "Магазин инструментов откроется в следующей версии"
-    });
+    setIsStoreOpen(true);
   };
 
   return (
@@ -136,6 +136,12 @@ export const MCPToolsPanel = () => {
           toolDescription={selectedTool.description}
         />
       )}
+
+      {/* Store Modal */}
+      <MCPStoreModal
+        isOpen={isStoreOpen}
+        onClose={() => setIsStoreOpen(false)}
+      />
     </div>
   );
 };
