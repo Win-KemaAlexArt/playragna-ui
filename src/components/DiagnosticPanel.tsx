@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Activity, Play, Square, Copy, Trash2, Download, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Activity } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { DiagnosticHeader } from "@/components/diagnostics/DiagnosticHeader";
+import { DiagnosticControls } from "@/components/diagnostics/DiagnosticControls";
+import { DiagnosticFilters } from "@/components/diagnostics/DiagnosticFilters";
+import { DiagnosticStats } from "@/components/diagnostics/DiagnosticStats";
+import { DiagnosticLogItem } from "@/components/diagnostics/DiagnosticLogItem";
 
 interface DiagnosticLog {
   timestamp: number;
@@ -13,6 +14,9 @@ interface DiagnosticLog {
   action: string;
   state: any;
   dom?: any;
+  level?: "error" | "warn" | "info" | "debug";
+  message?: string;
+  stack?: string;
 }
 
 interface DiagnosticStatistics {
@@ -56,6 +60,7 @@ export const DiagnosticPanel = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [selectedComponent, setSelectedComponent] = useState<string | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
   // Load data on mount
   useEffect(() => {
@@ -226,196 +231,114 @@ export const DiagnosticPanel = () => {
     return `${hours}:${minutes}:${seconds}.${ms}`;
   };
 
-  const filteredLogs = selectedComponent 
-    ? logs.filter(log => log.component === selectedComponent)
-    : logs;
+  // Enhanced filtering logic
+  const filteredLogs = logs.filter(log => {
+    if (selectedComponent && log.component !== selectedComponent) return false;
+    if (selectedLevel && (log.level || "info") !== selectedLevel) return false;
+    return true;
+  });
 
-  const componentOptions = statistics 
-    ? Object.keys(statistics.componentCounts).sort()
-    : [];
+  const componentCounts = statistics?.componentCounts || {};
+  
+  // Calculate level counts from actual logs
+  const levelCounts = logs.reduce((acc, log) => {
+    const level = log.level || "info";
+    acc[level] = (acc[level] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const warningCount = logs.filter(log => log.level === "warn").length;
 
   // ✅ API availability check removed - using postMessage bridge now
   // Parent window always handles API calls via message passing
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="p-4 border-b border-border bg-card/50">
-        <div className="flex items-center gap-3 mb-4">
-          <Activity className="w-6 h-6 text-primary" />
-          <h2 className="font-rajdhani font-semibold text-xl text-foreground metal-glow">
-            Diagnostics
-          </h2>
-          <div className="ml-auto flex items-center gap-2">
-            {statistics && (
-              <>
-                <Badge variant="secondary">
-                  {statistics.totalLogs} logs
-                </Badge>
-                {statistics.errorCount > 0 && (
-                  <Badge variant="destructive">
-                    {statistics.errorCount} errors
-                  </Badge>
-                )}
-              </>
-            )}
-          </div>
-        </div>
+    <div className="flex flex-col h-full bg-background">
+      {/* Header Section */}
+      <div className="p-3 sm:p-4 border-b border-border/50 bg-gradient-to-b from-card/80 to-card/50 backdrop-blur-sm">
+        <div className="space-y-3">
+          <DiagnosticHeader
+            totalLogs={statistics?.totalLogs || 0}
+            errorCount={statistics?.errorCount || 0}
+            warningCount={warningCount}
+          />
 
-        {/* Recording Controls */}
-        <div className="space-y-2 mb-3">
-          {/* Primary action (full width) */}
-          {!isRecording ? (
-            <Button
-              size="sm"
-              onClick={handleStartRecording}
-              className="w-full bg-destructive/20 border border-destructive/30 hover:bg-destructive/40 text-destructive hover:text-foreground font-rajdhani font-semibold"
-              variant="outline"
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Start Recording
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              onClick={handleStopRecording}
-              className="w-full bg-destructive border border-destructive hover:bg-destructive/80 text-white font-rajdhani font-semibold animate-pulse"
-            >
-              <Square className="w-4 h-4 mr-2" />
-              Stop ({formatDuration(recordingDuration)})
-            </Button>
-          )}
-          
-          {/* Secondary actions (row) */}
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleCopy}
-              className="flex-1 bg-background/70 border-muted-foreground/30 hover:bg-muted"
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleDownload}
-              className="flex-1 bg-background/70 border-muted-foreground/30 hover:bg-muted"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-            
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleClear}
-              className="flex-1 bg-background/70 border-muted-foreground/30 hover:bg-muted hover:text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+          <DiagnosticControls
+            isRecording={isRecording}
+            recordingDuration={recordingDuration}
+            onStartRecording={handleStartRecording}
+            onStopRecording={handleStopRecording}
+            onCopy={handleCopy}
+            onDownload={handleDownload}
+            onClear={handleClear}
+            onRefresh={loadData}
+            formatDuration={formatDuration}
+          />
 
-        {/* Component Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-          <Button
-            size="sm"
-            variant={selectedComponent === null ? "default" : "outline"}
-            onClick={() => setSelectedComponent(null)}
-            className={cn(
-              "text-xs whitespace-nowrap",
-              selectedComponent === null
-                ? "bg-primary/30 border-primary text-primary"
-                : "bg-background/70 border-muted-foreground/30 hover:bg-muted"
-            )}
-          >
-            All ({logs.length})
-          </Button>
-          {componentOptions.map((component) => (
-            <Button
-              key={component}
-              size="sm"
-              variant={selectedComponent === component ? "default" : "outline"}
-              onClick={() => setSelectedComponent(component)}
-              className={cn(
-                "text-xs whitespace-nowrap",
-                selectedComponent === component
-                  ? "bg-primary/30 border-primary text-primary"
-                  : "bg-background/70 border-muted-foreground/30 hover:bg-muted"
-              )}
-            >
-              {component} ({statistics?.componentCounts[component] || 0})
-            </Button>
-          ))}
+          <DiagnosticFilters
+            selectedComponent={selectedComponent}
+            selectedLevel={selectedLevel}
+            componentCounts={componentCounts}
+            levelCounts={levelCounts}
+            totalLogs={logs.length}
+            onComponentSelect={setSelectedComponent}
+            onLevelSelect={setSelectedLevel}
+          />
         </div>
       </div>
 
-      {/* Statistics Cards */}
+      {/* Statistics Section */}
       {statistics && (
-        <div className="p-4 flex flex-col gap-2 border-b border-border bg-card/30">
-          <Card className="p-3 bg-card/70 border-primary/30">
-            <p className="text-xs text-muted-foreground mb-1">Total Logs</p>
-            <p className="text-2xl font-rajdhani font-bold text-primary">
-              {statistics.totalLogs}
-            </p>
-          </Card>
-          <Card className="p-3 bg-card/70 border-primary/30">
-            <p className="text-xs text-muted-foreground mb-1">Uptime</p>
-            <p className="text-2xl font-rajdhani font-bold text-primary">
-              {formatDuration(statistics.uptime)}
-            </p>
-          </Card>
-          <Card className="p-3 bg-card/70 border-primary/30">
-            <p className="text-xs text-muted-foreground mb-1">Errors</p>
-            <p className="text-2xl font-rajdhani font-bold text-destructive">
-              {statistics.errorCount}
-            </p>
-          </Card>
+        <div className="p-3 sm:p-4 border-b border-border/50 bg-card/30">
+          <DiagnosticStats
+            totalLogs={statistics.totalLogs}
+            errorCount={statistics.errorCount}
+            warningCount={warningCount}
+            uptime={statistics.uptime}
+            formatDuration={formatDuration}
+          />
         </div>
       )}
 
-      {/* Logs List */}
+      {/* Logs List Section */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-2">
+        <div className="p-3 sm:p-4 space-y-2">
           {filteredLogs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No diagnostic logs</p>
+            <div className="text-center py-12 sm:py-16 text-muted-foreground">
+              <Activity className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 opacity-30" />
+              <p className="text-sm sm:text-base">No diagnostic logs found</p>
               {isRecording && (
-                <p className="text-xs mt-2 text-destructive animate-pulse">
-                  🔴 Recording in progress...
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
+                  <p className="text-xs text-destructive font-medium">
+                    Recording in progress...
+                  </p>
+                </div>
+              )}
+              {(selectedComponent || selectedLevel) && (
+                <p className="text-xs mt-2 opacity-70">
+                  Try adjusting your filters
                 </p>
               )}
             </div>
           ) : (
-            filteredLogs.slice().reverse().map((log, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "bg-card/70 border border-primary/20 rounded-lg p-3",
-                  "transition-all duration-200 hover:border-primary/40",
-                  "font-mono text-xs"
-                )}
-              >
-                <div className="flex items-start gap-2 mb-2">
-                  <Badge variant="secondary" className="text-[10px]">
-                    {log.component}
-                  </Badge>
-                  <span className="text-primary font-semibold">
-                    {log.action}
-                  </span>
-                  <span className="ml-auto text-muted-foreground text-[10px]">
-                    {formatTime(log.timestamp)}
-                  </span>
-                </div>
-                {Object.keys(log.state).length > 0 && (
-                  <pre className="text-[10px] text-muted-foreground bg-background/50 p-2 rounded overflow-x-auto max-w-full">
-                    {JSON.stringify(log.state, null, 2)}
-                  </pre>
-                )}
+            <>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <p className="text-xs text-muted-foreground">
+                  Showing {filteredLogs.length} of {logs.length} logs
+                </p>
               </div>
-            ))
+              {filteredLogs
+                .slice()
+                .reverse()
+                .map((log, index) => (
+                  <DiagnosticLogItem
+                    key={`${log.timestamp}-${index}`}
+                    log={log}
+                    formatTime={formatTime}
+                  />
+                ))}
+            </>
           )}
         </div>
       </ScrollArea>
