@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChatHeader } from "@/components/ChatHeader";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
@@ -7,9 +7,10 @@ import { MCPToolsPanel } from "@/components/MCPToolsPanel";
 import { DocumentsPanel } from "@/components/DocumentsPanel";
 import { BookmarksPanel } from "@/components/BookmarksPanel";
 import { HistoryPanel } from "@/components/HistoryPanel";
+import { DiagnosticPanel } from "@/components/DiagnosticPanel";
 import { toast } from "sonner";
 
-type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history";
+type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history" | "diagnostic";
 
 interface Message {
   id: string;
@@ -20,6 +21,9 @@ interface Message {
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabId>("chats");
+  const [featureFlags, setFeatureFlags] = useState<Record<string, boolean>>({
+    diagnosticMode: true  // Default ON (will be updated from DiagnosticStore after mount)
+  });
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -28,6 +32,29 @@ const Index = () => {
       timestamp: new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
+
+  // Load feature flags from DiagnosticStore
+  useEffect(() => {
+    const loadFeatureFlags = async () => {
+      if (!window.playragnaDiagnostics) return;
+      
+      try {
+        const settings = await window.playragnaDiagnostics.getSettings();
+        setFeatureFlags({
+          diagnosticMode: settings.diagnosticMode
+        });
+      } catch (error) {
+        console.error('[Index] Failed to load feature flags:', error);
+      }
+    };
+    
+    loadFeatureFlags();
+    
+    // Check every 5 seconds for feature flag changes
+    const interval = setInterval(loadFeatureFlags, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSendMessage = (content: string) => {
     const userMessage: Message = {
@@ -73,7 +100,11 @@ const Index = () => {
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <ChatSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <ChatSidebar 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+          featureFlags={featureFlags}
+        />
         
         <main className="flex-1 flex flex-col">
           {activeTab === "chats" ? (
@@ -114,6 +145,8 @@ const Index = () => {
             <BookmarksPanel />
           ) : activeTab === "history" ? (
             <HistoryPanel />
+          ) : activeTab === "diagnostic" ? (
+            <DiagnosticPanel />
           ) : null}
         </main>
       </div>

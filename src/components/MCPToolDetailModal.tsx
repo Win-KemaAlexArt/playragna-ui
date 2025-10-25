@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -179,6 +179,7 @@ export const MCPToolDetailModal = ({ isOpen, onClose, tool, onInstall }: MCPTool
       <DialogContent className="max-w-2xl bg-background border-primary/20">
         <DialogHeader>
           <DialogTitle className="font-rajdhani text-xl">Tool Details</DialogTitle>
+          <DialogDescription className="sr-only">Detailed information about the selected MCP tool</DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[70vh]">
           {content}

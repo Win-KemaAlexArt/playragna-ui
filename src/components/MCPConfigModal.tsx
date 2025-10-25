@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -203,6 +204,9 @@ export const MCPConfigModal = ({
           <DialogTitle className="font-rajdhani text-xl metal-glow">
             Configure Tool: {toolName}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Configuration settings for {toolName}
+          </DialogDescription>
         </DialogHeader>
         {content}
         <DialogFooter className="gap-2">

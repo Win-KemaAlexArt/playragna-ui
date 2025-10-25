@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -479,6 +479,7 @@ export const MCPStoreModal = ({ isOpen, onClose }: MCPStoreModalProps) => {
           <DialogContent className="max-w-6xl bg-background border-primary/20">
             <DialogHeader>
               <DialogTitle className="font-rajdhani text-2xl metal-glow">MCP Store</DialogTitle>
+              <DialogDescription className="sr-only">Browse and install MCP tools from the store</DialogDescription>
             </DialogHeader>
             {content}
           </DialogContent>

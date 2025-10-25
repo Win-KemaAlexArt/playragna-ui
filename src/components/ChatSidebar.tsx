@@ -1,13 +1,14 @@
-import { MessageSquare, Wrench, FileText, Bookmark, Clock } from "lucide-react";
+import { MessageSquare, Wrench, FileText, Bookmark, Clock, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history";
+type TabId = "chats" | "tools" | "documents" | "bookmarks" | "history" | "diagnostic";
 
 interface SidebarTab {
   id: TabId;
   icon: React.ElementType;
   label: string;
+  featureFlag?: string;
 }
 
 const tabs: SidebarTab[] = [
@@ -16,16 +17,19 @@ const tabs: SidebarTab[] = [
   { id: "documents", icon: FileText, label: "Документы" },
   { id: "bookmarks", icon: Bookmark, label: "Закладки" },
   { id: "history", icon: Clock, label: "История" },
+  { id: "diagnostic", icon: Activity, label: "Diagnostic", featureFlag: "diagnosticMode" },
 ];
 
 interface ChatSidebarProps {
   activeTab?: TabId;
   onTabChange?: (tab: TabId) => void;
+  featureFlags?: Record<string, boolean>;
 }
 
 export const ChatSidebar = ({ 
   activeTab = "chats", 
-  onTabChange 
+  onTabChange,
+  featureFlags = {}
 }: ChatSidebarProps) => {
   const [active, setActive] = useState<TabId>(activeTab);
 
@@ -34,9 +38,15 @@ export const ChatSidebar = ({
     onTabChange?.(tabId);
   };
 
+  // Filter tabs by feature flags
+  const visibleTabs = tabs.filter(tab => {
+    if (!tab.featureFlag) return true;
+    return featureFlags[tab.featureFlag] === true;
+  });
+
   return (
     <aside className="w-16 border-r border-border bg-gradient-to-b from-muted/80 to-card/80 backdrop-blur-sm flex flex-col items-center py-4 gap-2">
-      {tabs.map((tab) => {
+      {visibleTabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = active === tab.id;
         
