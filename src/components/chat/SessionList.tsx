@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Search, Plus, Filter, Download, Upload, Pin, Star, Archive, MessageSquare } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Plus, Filter, Download, Upload, Pin, Star, Archive, MessageSquare, Command } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SessionItem } from "./SessionItem";
 import { useChatStore } from "@/hooks/useChatStore";
+import { useHotkeys, HOTKEYS } from "@/hooks/useHotkeys";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,8 @@ interface SessionListProps {
 export const SessionList = ({ className }: SessionListProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "pinned" | "favorites" | "archived">("all");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
     sessions,
@@ -122,51 +125,123 @@ export const SessionList = ({ className }: SessionListProps) => {
   const favoritesCount = Object.values(sessions).filter(s => s.metadata.isFavorite).length;
   const archivedCount = Object.values(sessions).filter(s => s.metadata.isArchived).length;
 
+  // ⌨️ Горячие клавиши
+  useHotkeys([
+    {
+      ...HOTKEYS.SEARCH,
+      callback: () => {
+        searchInputRef.current?.focus();
+        setIsSearchFocused(true);
+      },
+    },
+    {
+      ...HOTKEYS.NEW_CHAT,
+      callback: handleNewSession,
+    },
+    {
+      ...HOTKEYS.NEXT_SESSION,
+      callback: () => {
+        const currentIndex = sortedSessions.findIndex(s => s.id === currentSessionId);
+        if (currentIndex < sortedSessions.length - 1) {
+          switchSession(sortedSessions[currentIndex + 1].id);
+        }
+      },
+    },
+    {
+      ...HOTKEYS.PREV_SESSION,
+      callback: () => {
+        const currentIndex = sortedSessions.findIndex(s => s.id === currentSessionId);
+        if (currentIndex > 0) {
+          switchSession(sortedSessions[currentIndex - 1].id);
+        }
+      },
+    },
+  ]);
+
   return (
-    <div className={cn("flex flex-col h-full bg-gradient-to-b from-muted/50 to-card/50 backdrop-blur-sm", className)}>
+    <div className={cn("flex flex-col h-full bg-gradient-to-b from-muted/50 to-card/50 backdrop-blur-sm border-r border-border/50", className)}>
       {/* Header */}
-      <div className="p-4 border-b border-border space-y-3">
+      <div className="p-4 border-b border-border/50 space-y-3 bg-gradient-to-r from-card/80 to-muted/60">
         <div className="flex items-center justify-between gap-2">
-          <h2 className="text-lg font-rajdhani font-bold metal-glow">История чатов</h2>
+          <h2 className="text-lg font-rajdhani font-bold metal-glow tracking-wide">ИСТОРИЯ СЕССИЙ</h2>
           <div className="flex gap-1">
-            <Button size="icon" variant="ghost" onClick={handleImport} title="Импорт">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={handleImport} 
+              title="Импорт (Ctrl+I)"
+              className="hover-glow hover:text-primary"
+            >
               <Upload className="h-4 w-4" />
             </Button>
-            <Button size="icon" variant="default" onClick={handleNewSession} title="Новый чат">
+            <Button 
+              size="icon" 
+              variant="default" 
+              onClick={handleNewSession} 
+              title="Новый чат (Ctrl+N)"
+              className="bg-gradient-to-r from-primary/80 to-accent/70 hover:from-primary hover:to-accent shadow-lg shadow-primary/20"
+            >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Search with hotkey indicator */}
+        <div className="relative group">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input
+            ref={searchInputRef}
             placeholder="Поиск по чатам..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            className={cn(
+              "pl-9 pr-16 transition-all duration-300",
+              "border-border/50 focus:border-primary/50 focus:shadow-lg focus:shadow-primary/10",
+              "bg-input/50 focus:bg-input"
+            )}
           />
+          {!isSearchFocused && !searchQuery && (
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-muted-foreground pointer-events-none">
+              <kbd className="px-1.5 py-0.5 bg-muted/50 border border-border/50 rounded text-[10px] font-code">
+                {navigator.platform.includes("Mac") ? "⌘" : "Ctrl"}
+              </kbd>
+              <kbd className="px-1.5 py-0.5 bg-muted/50 border border-border/50 rounded text-[10px] font-code">K</kbd>
+            </div>
+          )}
         </div>
 
         {/* Filter Tabs */}
         <Tabs value={filterTab} onValueChange={(v) => setFilterTab(v as any)}>
-          <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="all" className="text-xs py-1.5 data-[state=active]:bg-primary/20">
+          <TabsList className="grid w-full grid-cols-4 h-auto bg-muted/50 p-1">
+            <TabsTrigger 
+              value="all" 
+              className="text-xs py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/30 data-[state=active]:to-accent/20 data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300"
+            >
               <MessageSquare className="h-3 w-3 mr-1" />
               Все
             </TabsTrigger>
-            <TabsTrigger value="pinned" className="text-xs py-1.5 data-[state=active]:bg-primary/20">
+            <TabsTrigger 
+              value="pinned" 
+              className="text-xs py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/30 data-[state=active]:to-accent/20 data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300"
+            >
               <Pin className="h-3 w-3 mr-1" />
-              {pinnedCount > 0 && <span className="ml-0.5">({pinnedCount})</span>}
+              {pinnedCount > 0 && <span className="ml-0.5 font-bold">({pinnedCount})</span>}
             </TabsTrigger>
-            <TabsTrigger value="favorites" className="text-xs py-1.5 data-[state=active]:bg-primary/20">
+            <TabsTrigger 
+              value="favorites" 
+              className="text-xs py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/30 data-[state=active]:to-accent/20 data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300"
+            >
               <Star className="h-3 w-3 mr-1" />
-              {favoritesCount > 0 && <span className="ml-0.5">({favoritesCount})</span>}
+              {favoritesCount > 0 && <span className="ml-0.5 font-bold">({favoritesCount})</span>}
             </TabsTrigger>
-            <TabsTrigger value="archived" className="text-xs py-1.5 data-[state=active]:bg-primary/20">
+            <TabsTrigger 
+              value="archived" 
+              className="text-xs py-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary/30 data-[state=active]:to-accent/20 data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-300"
+            >
               <Archive className="h-3 w-3 mr-1" />
-              {archivedCount > 0 && <span className="ml-0.5">({archivedCount})</span>}
+              {archivedCount > 0 && <span className="ml-0.5 font-bold">({archivedCount})</span>}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -203,10 +278,23 @@ export const SessionList = ({ className }: SessionListProps) => {
       </ScrollArea>
 
       {/* Footer Stats */}
-      <div className="p-3 border-t border-border text-xs text-muted-foreground">
-        <div className="flex justify-between">
-          <span>Всего чатов: {Object.keys(sessions).length}</span>
-          <span>Сообщений: {Object.values(sessions).reduce((sum, s) => sum + s.metadata.messageCount, 0)}</span>
+      <div className="p-3 border-t border-border/50 text-xs bg-gradient-to-r from-muted/60 to-card/60">
+        <div className="flex justify-between items-center text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-primary/50 animate-pulse-glow"></div>
+            <span className="font-rajdhani font-semibold">{Object.keys(sessions).length}</span>
+            <span>сессий</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span>{Object.values(sessions).reduce((sum, s) => sum + s.metadata.messageCount, 0)}</span>
+            <span>сообщений</span>
+          </div>
+        </div>
+        <div className="mt-2 text-[10px] text-muted-foreground/70 flex items-center gap-2 justify-center">
+          <span className="flex items-center gap-1">
+            <Command className="h-3 w-3" />
+            <span>Горячие клавиши: Ctrl+N (новый), Ctrl+K (поиск)</span>
+          </span>
         </div>
       </div>
     </div>
