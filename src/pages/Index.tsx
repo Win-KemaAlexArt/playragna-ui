@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { ChatHeader } from "@/components/ChatHeader";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
@@ -78,27 +77,9 @@ const Index = () => {
     }, 1000);
   };
 
-  const handleNewChat = () => {
-    setMessages([]);
-    toast.success("Новый чат создан");
-  };
-
-  const handleSettings = () => {
-    toast.info("Настройки скоро будут доступны");
-  };
-
-  const handleHelp = () => {
-    toast.info("Документация в разработке");
-  };
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
-      <ChatHeader 
-        onNewChat={handleNewChat}
-        onSettings={handleSettings}
-        onHelp={handleHelp}
-      />
-      
       <div className="flex-1 flex overflow-hidden">
         <ChatSidebar 
           activeTab={activeTab} 
